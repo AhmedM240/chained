@@ -2,7 +2,7 @@ import json
 from datetime import date as date_type
 from pathlib import Path
 
-from sqlmodel import Session
+from sqlmodel import Session, col, select
 
 from backend.db import engine
 from backend.models.chain_word import ChainWord
@@ -22,21 +22,24 @@ def seed():
             puzzle_date = date_type.fromisoformat(entry["date"])
             words = entry["words"]
 
+            existing = session.exec(
+                select(Puzzle).where(col(Puzzle.date) == puzzle_date)
+            ).first()
+            if existing:
+                print(f"Skipping {puzzle_date} (already exists)")
+                continue
+
             puzzle = Puzzle(date=puzzle_date, chain_length=len(words))
             session.add(puzzle)
-            session.commit()
-            session.refresh(puzzle)  # populates puzzle.id after insert
+            session.flush()  # assigns puzzle.id without committing yet
             assert puzzle.id is not None
 
             for position, answer in enumerate(words):
-                chain_word = ChainWord(
-                    puzzle_id=puzzle.id,
-                    position=position,
-                    answer=answer,
+                session.add(
+                    ChainWord(puzzle_id=puzzle.id, position=position, answer=answer)
                 )
-                session.add(chain_word)
 
-            session.commit()
+            session.commit()  # puzzle and all its words saved together
             print(f"Seeded puzzle for {puzzle_date} with {len(words)} words")
 
 

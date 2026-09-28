@@ -1,19 +1,9 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
-from alembic import context
-
-from backend.config import settings
-from backend.db import engine
 from sqlmodel import SQLModel
 
-
-from backend.models import puzzle
-from backend.models import game
-from backend.models import guess
-from backend.models import chain_word
+from alembic import context
+from backend.db import engine
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
