@@ -9,7 +9,8 @@ class GuessCreateRequest(BaseModel):
 
 class ChainWordState(BaseModel):
     position : int
-    first_letter : str
+    length : int
+    revealed : str
     answer : str | None = None
 
 class GameState(BaseModel):
@@ -24,4 +25,3 @@ class GuessResponse(BaseModel):
     is_correct : bool
     game : GameState
 
-    

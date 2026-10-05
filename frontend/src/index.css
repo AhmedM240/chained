@@ -1,0 +1,95 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+
+@theme {
+  --color-bg: #faf6f0;
+  --color-surface: #ffffff;
+  --color-charcoal: #2b2824;
+  --color-muted: #a9a29a;
+
+  --color-locked: #e4ddd1;
+  --color-locked-text: #b3aa9e;
+
+  --color-active: #f2994a;
+  --color-active-glow: #ffd166;
+
+  --color-solved: #2e8b8b;
+  --color-solved-light: #e3f2f0;
+
+  --color-danger: #d9534f;
+
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-charcoal);
+    font-family: var(--font-sans);
+  }
+}
+
+@keyframes link-pop {
+  0% {
+    transform: scale(0.6);
+    box-shadow: 0 0 0px var(--color-solved);
+  }
+  50% {
+    transform: scale(1.4);
+    box-shadow: 0 0 16px var(--color-solved);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 8px var(--color-solved);
+  }
+}
+
+.animate-link-pop {
+  animation: link-pop 0.5s ease-out;
+}
+
+@keyframes letter-reveal {
+  0% {
+    transform: rotateX(90deg);
+    opacity: 0;
+  }
+  100% {
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes chain-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.1);
+    box-shadow: 0 0 14px var(--color-active-glow);
+  }
+}
+
+.animate-chain-pulse {
+  animation: chain-pulse 0.6s ease-out;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s ease-out both;
+}
+
+.animate-letter-reveal {
+  animation: letter-reveal 0.4s ease-out;
+  transform-style: preserve-3d;
+}

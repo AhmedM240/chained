@@ -14,5 +14,37 @@
   {
     "date": "2026-09-28",
     "words": ["Date", "Time", "Zone", "Defense"]
+  },
+  {
+    "date": "2026-09-29",
+    "words": ["House", "Party", "Cake", "Pop"]
+  },
+  {
+    "date": "2026-10-04",
+    "words": ["Sun", "Flower", "Bed", "Room", "Mate"]
+  },
+  {
+    "date": "2026-10-05",
+    "words": ["Fire", "Fly", "Wheel", "Chair"]
+  },
+  {
+    "date": "2026-10-06",
+    "words": ["Rain", "Bow", "Tie", "Breaker"]
+  },
+  {
+    "date": "2026-10-07",
+    "words": ["Star", "Fish", "Hook", "Worm"]
+  },
+  {
+    "date": "2026-10-08",
+    "words": ["Pan", "Cake", "Walk", "Way"]
+  },
+  {
+    "date": "2026-10-09",
+    "words": ["Over", "Board", "Walk", "Way"]
+  },
+  {
+    "date": "2026-10-10",
+    "words": ["Day", "Light", "House", "Keeper"]
   }
 ]
