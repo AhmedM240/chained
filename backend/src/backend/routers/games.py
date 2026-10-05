@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Response
 from sqlmodel import func, select
+from datetime import date
 
 from backend.db import SessionDependency
 from backend.models.chain_word import ChainWord
@@ -13,6 +14,10 @@ from backend.schemas.game import (
     GuessCreateRequest,
     GuessResponse,
 )
+from backend.models.puzzle import Puzzle
+
+
+PUZZLE_EPOCH = date(2026, 9, 21)
 
 router = APIRouter(prefix="/api/games", tags=["games"])
 
@@ -39,6 +44,10 @@ def _revealed_count(session, game_id : int, chain_word_id : int) -> int:
 
 def get_game_state(game: Game, chain_words: list[ChainWord], session) -> GameState:
     assert game.id is not None
+    puzzle = session.get(Puzzle, game.puzzle_id)
+    assert puzzle is not None
+
+
     finished = game.game_status != IN_PROGRESS
     words = []
 
@@ -69,6 +78,8 @@ def get_game_state(game: Game, chain_words: list[ChainWord], session) -> GameSta
     return GameState(
         game_id=game.id,
         puzzle_id=game.puzzle_id,
+        puzzle_number= (puzzle.date - PUZZLE_EPOCH).days + 1,
+        puzzle_date= puzzle.date,
         current_pos=game.current_position,
         lives=game.lives,
         game_status=game.game_status,

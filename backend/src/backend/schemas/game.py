@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-
+from datetime import date
 
 class GameCreateRequest(BaseModel):
     session_id : str = Field(min_length=8, max_length=64)
@@ -16,6 +16,8 @@ class ChainWordState(BaseModel):
 class GameState(BaseModel):
     game_id : int
     puzzle_id : int
+    puzzle_number : int
+    puzzle_date : date
     current_pos : int
     lives : int
     game_status : str
