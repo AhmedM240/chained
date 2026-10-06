@@ -10,7 +10,9 @@ import { ResultModal } from "./ResultModal";
 import type { GameState } from "./types";
 import { StatsModal } from "./StatsModal";
 import { totalMisses } from "./Share";
-import { useStats } from "./useStats";
+import { useStats } from "./UseStats";
+import { SettingsModal } from "./SettingsModal";
+import { useSettings } from "./useSettings";
 
 const STAGGER_MS = 120;
 const HELP_SEEN_KEY = "chained-seen-help";
@@ -34,6 +36,8 @@ function formatPuzzleDate(iso: string): string {
 function App() {
   const { game, error, guess } = useGame();
   const stats = useStats(game?.game_status ?? null);
+  const { settings, updateSettings } = useSettings();
+  const [showSettings, setShowSettings] = useState(false);
 
   const [lastPos, setLastPos] = useState<number | null>(null);
   const [justAdvancedTo, setJustAdvancedTo] = useState(-1);
@@ -131,6 +135,7 @@ function App() {
                   isActive={isActive}
                   onGuess={guess}
                   celebrateDelay={celebrate ? i * STAGGER_MS : null}
+                  autoSubmit={settings.autoSubmit}
                 />
               </div>
             );
@@ -152,7 +157,11 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-bg">
-      <Header onHelp={() => setShowHelp(true)} onStats={() => setShowStats(true)} />
+      <Header
+  onHelp={() => setShowHelp(true)}
+  onStats={() => setShowStats(true)}
+  onSettings={() => setShowSettings(true)}
+/>
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-10 flex flex-col items-center">
         {content}
       </main>
@@ -163,6 +172,13 @@ function App() {
   <StatsModal
     highlightMisses={game?.game_status === "won" ? totalMisses(game) : null}
     onClose={() => setShowStats(false)}
+  />
+)}
+{showSettings && (
+  <SettingsModal
+    settings={settings}
+    onChange={updateSettings}
+    onClose={() => setShowSettings(false)}
   />
 )}
     </div>

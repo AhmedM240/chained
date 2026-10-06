@@ -8,6 +8,7 @@ type Props = {
   isActive: boolean;
   onGuess: (text: string) => Promise<boolean | undefined>;
   celebrateDelay?: number | null;
+  autoSubmit: boolean;
 };
 
 function fixedCountOf(revealed: string, length: number): number {
@@ -26,6 +27,7 @@ export function ChainSlot({
   isActive,
   onGuess,
   celebrateDelay = null,
+  autoSubmit,
 }: Props) {
   const fixedCount = fixedCountOf(revealed, length);
   const prevFixedCount = previousRevealed ? fixedCountOf(previousRevealed, length) : 0;
@@ -81,14 +83,16 @@ export function ChainSlot({
   };
 
   const handleChange = (index: number, value: string) => {
-    const char = value.slice(-1).toUpperCase();
-    const next = [...letters];
-    next[index] = char;
-    setLetters(next);
-    if (char && index + 1 < next.length) {
-      inputsRef.current[index + 1]?.focus();
-    }
-  };
+  const char = value.slice(-1).toUpperCase();
+  const next = [...letters];
+  next[index] = char;
+  setLetters(next);
+  if (char && index + 1 < next.length) {
+    inputsRef.current[index + 1]?.focus();
+  } else if (char && autoSubmit) {
+    submit(next);
+  }
+};
 
   const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && !letters[index] && index > 0) {
@@ -125,11 +129,11 @@ export function ChainSlot({
         />
       ))}
     </div>
-    {allFilled && (
-      <span className="absolute left-full ml-3 whitespace-nowrap text-sm text-muted font-medium">
-        press Enter ↵
-      </span>
-    )}
+    {allFilled && !autoSubmit && (
+  <span className="absolute left-full ml-3 whitespace-nowrap text-sm text-muted font-medium">
+    press Enter ↵
+  </span>
+)}
   </div>
 );
 }
