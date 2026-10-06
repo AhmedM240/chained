@@ -2,16 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createGame, submitGuess } from "./api";
 import type { GameState } from "./types";
 
-const SESSION_KEY = "chained-session-id";
-
-function getSessionId(): string {
-  let id = localStorage.getItem(SESSION_KEY);
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem(SESSION_KEY, id);
-  }
-  return id;
-}
+import { getSessionId } from "./session";
 
 export function useGame() {
   const [game, setGame] = useState<GameState | null>(null);

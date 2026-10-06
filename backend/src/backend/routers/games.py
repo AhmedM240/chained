@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Response
-from sqlmodel import func, select
+from sqlmodel import col, func, select
 from datetime import date
 
 from backend.db import SessionDependency
@@ -15,30 +15,20 @@ from backend.schemas.game import (
     GuessResponse,
 )
 from backend.models.puzzle import Puzzle
-
+from backend.constants import IN_PROGRESS, LOST, WON
 
 PUZZLE_EPOCH = date(2026, 9, 21)
 
 router = APIRouter(prefix="/api/games", tags=["games"])
 
 
-#GameStates
-IN_PROGRESS = "in_progress"
-LOST = "lost"
-WON = "won"
-
-
-def _revealed_count(session, game_id : int, chain_word_id : int) -> int:
-    wrong = session.exec(
-        select(func.count())
-        .select_from(Guess)
-        .where(
-            Guess.game_id == game_id,
-            Guess.chain_word_id == chain_word_id,
-            Guess.is_correct == False,
-        )
-    ).one()
-    return wrong
+def _misses_by_word(session, game_id: int) -> dict[int, int]:
+    rows = session.exec(
+        select(Guess.chain_word_id, func.count())
+        .where(Guess.game_id == game_id, col(Guess.is_correct).is_(False))
+        .group_by(col(Guess.chain_word_id))
+    ).all()
+    return {chain_word_id: count for chain_word_id, count in rows}
 
 
 
@@ -47,7 +37,7 @@ def get_game_state(game: Game, chain_words: list[ChainWord], session) -> GameSta
     puzzle = session.get(Puzzle, game.puzzle_id)
     assert puzzle is not None
 
-
+    misses = _misses_by_word(session, game.id)
     finished = game.game_status != IN_PROGRESS
     words = []
 
@@ -55,12 +45,12 @@ def get_game_state(game: Game, chain_words: list[ChainWord], session) -> GameSta
         assert w.id is not None
         answer_upper = w.answer.upper()
         solved = finished or i < game.current_position
+        word_misses = misses.get(w.id, 0)
 
         if solved:
             revealed = answer_upper
         elif i == game.current_position:
-            wrong_count = _revealed_count(session, game.id, w.id)
-            reveal_len = min(1 + wrong_count, len(w.answer) - 1)
+            reveal_len = min(1 + word_misses, len(w.answer) - 1)
             revealed = answer_upper[:reveal_len] + "_" * (len(w.answer) - reveal_len)
         else:
             revealed = "_" * len(w.answer)
@@ -70,6 +60,7 @@ def get_game_state(game: Game, chain_words: list[ChainWord], session) -> GameSta
                 position=w.position,
                 length=len(w.answer),
                 revealed=revealed,
+                misses=word_misses,
                 answer=w.answer if solved else None,
             )
         )

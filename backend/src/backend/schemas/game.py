@@ -11,6 +11,7 @@ class ChainWordState(BaseModel):
     position : int
     length : int
     revealed : str
+    misses : int
     answer : str | None = None
 
 class GameState(BaseModel):

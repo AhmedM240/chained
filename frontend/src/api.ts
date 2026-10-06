@@ -1,4 +1,4 @@
-import type { GameState, GuessResponse } from "./types";
+import type { GameState, GuessResponse, StatsResponse } from "./types";
 
 const API_BASE = "http://127.0.0.1:8000";
 
@@ -25,5 +25,11 @@ export async function submitGuess(gameId: number, guess: string): Promise<GuessR
     body: JSON.stringify({ guess }),
   });
   if (!res.ok) throw new Error("Failed to submit guess");
+  return res.json();
+}
+
+export async function getStats(sessionId: string): Promise<StatsResponse> {
+  const res = await fetch(`${API_BASE}/api/stats?session_id=${encodeURIComponent(sessionId)}`);
+  if (!res.ok) throw new Error("Failed to load stats");
   return res.json();
 }

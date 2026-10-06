@@ -1,11 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useGame } from "./useGame";
 import { ChainSlot } from "./ChainSlot";
 import { Connector } from "./Connector";
 import { LivesDisplay } from "./LivesDisplay";
+import { Header } from "./Header";
+import { Footer } from "./Footer";
+import { HowToPlay } from "./HowToPlay";
+import { ResultModal } from "./ResultModal";
 import type { GameState } from "./types";
+import { StatsModal } from "./StatsModal";
+import { totalMisses } from "./Share";
+import { useStats } from "./useStats";
 
 const STAGGER_MS = 120;
+const HELP_SEEN_KEY = "chained-seen-help";
+
 
 function buildRevealedMap(game: GameState): Record<number, string> {
   const map: Record<number, string> = {};
@@ -13,8 +22,18 @@ function buildRevealedMap(game: GameState): Record<number, string> {
   return map;
 }
 
+function formatPuzzleDate(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 function App() {
   const { game, error, guess } = useGame();
+  const stats = useStats(game?.game_status ?? null);
 
   const [lastPos, setLastPos] = useState<number | null>(null);
   const [justAdvancedTo, setJustAdvancedTo] = useState(-1);
@@ -22,6 +41,19 @@ function App() {
   const [prevRevealed, setPrevRevealed] = useState<Record<number, string>>({});
   const [lastStatus, setLastStatus] = useState<string | null>(null);
   const [celebrate, setCelebrate] = useState(false);
+  const [justFinished, setJustFinished] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+  const [showHelp, setShowHelp] = useState(() => localStorage.getItem(HELP_SEEN_KEY) === null);
+  const [showStats, setShowStats] = useState(false);
+  
+
+  const closeHelp = () => {
+    localStorage.setItem(HELP_SEEN_KEY, "1");
+    setShowHelp(false);
+    requestAnimationFrame(() => {
+      document.querySelector<HTMLInputElement>("main input")?.focus();
+    });
+  };
 
   if (game) {
     if (lastPos !== game.current_pos) {
@@ -39,23 +71,46 @@ function App() {
     }
 
     if (lastStatus !== game.game_status) {
-      if (lastStatus === "in_progress" && game.game_status === "won") setCelebrate(true);
+      if (lastStatus === "in_progress" && game.game_status !== "in_progress") {
+        setJustFinished(true);
+        if (game.game_status === "won") setCelebrate(true);
+      }
       setLastStatus(game.game_status);
     }
   }
 
-  if (error) return <div className="p-8 text-danger">Error: {error}</div>;
-  if (!game) return <div className="p-8 text-muted">Loading...</div>;
+  // wait for the win wave (or a beat after a loss) before opening the results
+  const resultDelay =
+    game?.game_status === "won" ? game.words.length * STAGGER_MS + 700 : 900;
 
-  return (
-    <div className="min-h-screen bg-bg">
-      <div className="max-w-md mx-auto p-8">
-        <h1 className="text-3xl font-extrabold mb-1 text-charcoal">Chained</h1>
-        <p className="mb-6 text-muted text-sm">Build the word chain, one link at a time.</p>
+  useEffect(() => {
+    if (!justFinished) return;
+    const id = setTimeout(() => setShowResult(true), resultDelay);
+    return () => clearTimeout(id);
+  }, [justFinished, resultDelay]);
+
+  let content: ReactNode;
+
+  if (error) {
+    content = <p className="text-danger font-medium">Error: {error}</p>;
+  } else if (!game) {
+    content = <p className="text-muted">Loading today's chain...</p>;
+  } else {
+    content = (
+      <>
+        <div className="text-center mb-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted">
+            Puzzle #{game.puzzle_number}
+          </p>
+          <h1 className="text-2xl font-extrabold text-charcoal mt-1">
+            {formatPuzzleDate(game.puzzle_date)}
+          </h1>
+          <p className="text-sm text-muted mt-1">Build the chain, one link at a time.</p>
+        </div>
 
         <LivesDisplay lives={game.lives} />
 
-        <div className="flex flex-col items-start">
+        <div className="w-fit flex flex-col items-start">
           {game.words.map((w, i) => {
             const isActive = i === game.current_pos && game.game_status === "in_progress";
             return (
@@ -82,29 +137,34 @@ function App() {
           })}
         </div>
 
-        {game.game_status === "won" && (
-          <div
-            style={
-              celebrate
-                ? { animationDelay: `${game.words.length * STAGGER_MS + 300}ms` }
-                : undefined
-            }
-            className="mt-8 rounded-2xl bg-surface border-2 border-solved shadow-md p-5 animate-fade-up"
+        {game.game_status !== "in_progress" && (
+          <button
+            onClick={() => setShowResult(true)}
+            style={justFinished ? { animationDelay: `${resultDelay}ms` } : undefined}
+            className="mt-10 rounded-xl border-2 border-locked bg-surface px-6 py-2.5 font-semibold text-charcoal shadow-sm hover:border-active transition-colors animate-fade-up"
           >
-            <p className="text-solved font-extrabold text-xl">Chain complete!</p>
-            <p className="text-muted text-sm mt-1">Come back tomorrow for a new chain.</p>
-          </div>
+            View results
+          </button>
         )}
+      </>
+    );
+  }
 
-        {game.game_status === "lost" && (
-          <div className="mt-8 rounded-2xl bg-surface border-2 border-danger shadow-md p-5 animate-fade-up">
-            <p className="text-danger font-extrabold text-xl">The chain broke</p>
-            <p className="text-muted text-sm mt-1">
-              All the links are revealed above. Try again tomorrow.
-            </p>
-          </div>
-        )}
-      </div>
+  return (
+    <div className="min-h-screen flex flex-col bg-bg">
+      <Header onHelp={() => setShowHelp(true)} onStats={() => setShowStats(true)} />
+      <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-10 flex flex-col items-center">
+        {content}
+      </main>
+      <Footer streak={stats?.current_streak ?? null} />
+      {showHelp && <HowToPlay onClose={closeHelp} />}
+      {showResult && game && <ResultModal game={game} onClose={() => setShowResult(false)} />}
+        {showStats && (
+  <StatsModal
+    highlightMisses={game?.game_status === "won" ? totalMisses(game) : null}
+    onClose={() => setShowStats(false)}
+  />
+)}
     </div>
   );
 }

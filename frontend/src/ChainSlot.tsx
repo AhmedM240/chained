@@ -100,32 +100,36 @@ export function ChainSlot({
   const allFilled = letters.every((l) => l !== "");
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex gap-1.5">
-        {revealed
-          .slice(0, fixedCount)
-          .split("")
-          .map((ch, i) =>
-            box(ch, `f${i}`, "fixed", i >= prevFixedCount ? "animate-letter-reveal" : "")
-          )}
-        {letters.map((char, i) => (
-          <input
-            key={`i${i}`}
-            ref={(el) => {
-              inputsRef.current[i] = el;
-            }}
-            value={char}
-            onChange={(e) => handleChange(i, e.target.value)}
-            onKeyDown={(e) => handleKeyDown(i, e)}
-            maxLength={1}
-            autoFocus={i === 0}
-            className="w-11 h-11 text-center rounded-lg border-2 border-active bg-surface font-bold text-lg uppercase
-                       text-charcoal shadow-[0_0_0_3px_var(--color-active-glow)] focus:outline-none
-                       transition-all"
-          />
-        ))}
-      </div>
-      {allFilled && <span className="text-sm text-muted font-medium">press Enter ↵</span>}
+  <div className="relative flex items-center">
+    <div className="flex gap-1.5">
+      {revealed
+        .slice(0, fixedCount)
+        .split("")
+        .map((ch, i) =>
+          box(ch, `f${i}`, "fixed", i >= prevFixedCount ? "animate-letter-reveal" : "")
+        )}
+      {letters.map((char, i) => (
+        <input
+          key={`i${i}`}
+          ref={(el) => {
+            inputsRef.current[i] = el;
+          }}
+          value={char}
+          onChange={(e) => handleChange(i, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(i, e)}
+          maxLength={1}
+          autoFocus={i === 0}
+          className="w-11 h-11 text-center rounded-lg border-2 border-active bg-surface font-bold text-lg uppercase
+                     text-charcoal shadow-[0_0_0_3px_var(--color-active-glow)] focus:outline-none
+                     transition-all"
+        />
+      ))}
     </div>
-  );
+    {allFilled && (
+      <span className="absolute left-full ml-3 whitespace-nowrap text-sm text-muted font-medium">
+        press Enter ↵
+      </span>
+    )}
+  </div>
+);
 }
