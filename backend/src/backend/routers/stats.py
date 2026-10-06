@@ -10,31 +10,11 @@ from backend.models.game import Game
 from backend.models.puzzle import Puzzle
 from backend.schemas.stats import StatsResponse
 
+from backend.streaks import current_streak, max_streak
+
 router = APIRouter(prefix="/api/stats", tags=["stats"])
 
 
-def _max_streak(results: dict[date, bool]) -> int:
-    best = run = 0
-    last_win: date | None = None
-    for day in sorted(results):
-        if results[day]:
-            run = run + 1 if last_win == day - timedelta(days=1) else 1
-            last_win = day
-            best = max(best, run)
-        else:
-            run = 0
-            last_win = None
-    return best
-
-
-def _current_streak(results: dict[date, bool], today: date) -> int:
-    # if today's chain isn't finished yet, the streak is still alive from yesterday
-    day = today if today in results else today - timedelta(days=1)
-    streak = 0
-    while results.get(day) is True:
-        streak += 1
-        day -= timedelta(days=1)
-    return streak
 
 
 @router.get("", response_model=StatsResponse)
@@ -64,7 +44,7 @@ def get_stats(
         played=played,
         wins=wins,
         win_rate=round(100 * wins / played) if played else 0,
-        current_streak=_current_streak(results, datetime.now(UTC).date()),
-        max_streak=_max_streak(results),
+        current_streak=current_streak(results, datetime.now(UTC).date()),
+        max_streak=max_streak(results),
         miss_distribution=distribution,
     )
