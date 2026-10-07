@@ -38,7 +38,7 @@ def session():
     with Session(engine) as session:
         yield session
     with engine.begin() as conn:
-        conn.execute(text("TRUNCATE guess, game, chainword, puzzle RESTART IDENTITY CASCADE"))
+        conn.execute(text("TRUNCATE guess, game, chainword, puzzle, users RESTART IDENTITY CASCADE"))
 
 
 @pytest.fixture

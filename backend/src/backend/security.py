@@ -5,7 +5,6 @@ from pwdlib import PasswordHash
 
 from backend.config import settings
 
-
 ALGORITHM = "HS256"
 COOKIE_NAME = "chained_auth"
 
@@ -19,7 +18,7 @@ def hash_password(password : str) -> str:
     return password_hash.hash(password)
 
 def verify_password(password : str, hashed : str) -> bool:
-    return verify_password(password, hashed)
+    return password_hash.verify(password, hashed)
 
 
 def create_access_token(user_id : int) -> str:

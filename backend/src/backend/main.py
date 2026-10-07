@@ -1,13 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.routers import games, puzzle, stats
+from backend.routers import auth, games, puzzle, stats
 
 app = FastAPI()
 
 app.include_router(puzzle.router)
 app.include_router(games.router)
 app.include_router(stats.router)
+app.include_router(auth.router)
 
 app.add_middleware(
     CORSMiddleware,

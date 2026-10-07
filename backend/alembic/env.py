@@ -2,9 +2,9 @@ from logging.config import fileConfig
 
 from sqlmodel import SQLModel
 
+import backend.models  # noqa: F401  (registers every table with SQLModel.metadata)
 from alembic import context
 from backend.db import engine
-import backend.models  # noqa: F401  (registers every table with SQLModel.metadata)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
