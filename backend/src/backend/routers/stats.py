@@ -1,4 +1,4 @@
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Query
@@ -9,7 +9,6 @@ from backend.db import SessionDependency
 from backend.models.game import Game
 from backend.models.puzzle import Puzzle
 from backend.schemas.stats import StatsResponse
-
 from backend.streaks import current_streak, max_streak
 
 router = APIRouter(prefix="/api/stats", tags=["stats"])

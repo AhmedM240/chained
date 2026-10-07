@@ -33,17 +33,17 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('puzzle_id', sa.Integer(), nullable=False),
     sa.Column('position', sa.Integer(), nullable=False),
-    sa.Column('answer', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('answer', sqlmodel.sql.sqltypes.AutoString(), nullable=False), # type: ignore
     sa.ForeignKeyConstraint(['puzzle_id'], ['puzzle.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('game',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('puzzle_id', sa.Integer(), nullable=False),
-    sa.Column('session_id', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('session_id', sqlmodel.sql.sqltypes.AutoString(), nullable=False), # type: ignore
     sa.Column('current_position', sa.Integer(), nullable=False),
     sa.Column('lives', sa.Integer(), nullable=False),
-    sa.Column('game_status', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('game_status', sqlmodel.sql.sqltypes.AutoString(), nullable=False), # type: ignore
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['puzzle_id'], ['puzzle.id'], ),
     sa.PrimaryKeyConstraint('id')

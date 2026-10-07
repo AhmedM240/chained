@@ -1,7 +1,9 @@
 from datetime import UTC, datetime
 
 from sqlmodel import Field, SQLModel
+
 from backend.constants import STARTING_LIVES
+
 
 class Game(SQLModel, table = True):
     id : int | None = Field(default=None, primary_key=True)

@@ -71,7 +71,7 @@ def test_guesses_are_recorded(client, session, todays_chain):
     game = start_game(client)
     guess(client, game["game_id"], "frog")
     guess(client, game["game_id"], "fire")
-    rows = session.exec(select(Guess).order_by(Guess.id)).all()
+    rows = session.exec(select(Guess).order_by(Guess.id)).all() # type: ignore
     assert [(g.guess_text, g.is_correct, g.attempt_number) for g in rows] == [
         ("frog", False, 1),
         ("fire", True, 2),

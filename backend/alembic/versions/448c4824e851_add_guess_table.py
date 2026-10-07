@@ -26,7 +26,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('game_id', sa.Integer(), nullable=False),
     sa.Column('chain_word_id', sa.Integer(), nullable=False),
-    sa.Column('guess_text', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('guess_text', sqlmodel.sql.sqltypes.AutoString(), nullable=False), # type: ignore
     sa.Column('is_correct', sa.Boolean(), nullable=False),
     sa.Column('attempt_number', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),

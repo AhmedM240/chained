@@ -1,11 +1,14 @@
-from fastapi import APIRouter, HTTPException, Response
-from sqlmodel import col, func, select
 from datetime import date
 
+from fastapi import APIRouter, HTTPException, Response
+from sqlmodel import col, func, select
+
+from backend.constants import IN_PROGRESS, LOST, WON
 from backend.db import SessionDependency
 from backend.models.chain_word import ChainWord
 from backend.models.game import Game
 from backend.models.guess import Guess
+from backend.models.puzzle import Puzzle
 from backend.routers.queries import get_chain_words, get_puzzle
 from backend.schemas.game import (
     ChainWordState,
@@ -14,8 +17,6 @@ from backend.schemas.game import (
     GuessCreateRequest,
     GuessResponse,
 )
-from backend.models.puzzle import Puzzle
-from backend.constants import IN_PROGRESS, LOST, WON
 
 PUZZLE_EPOCH = date(2026, 9, 21)
 
