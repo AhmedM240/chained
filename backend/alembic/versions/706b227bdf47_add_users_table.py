@@ -25,7 +25,7 @@ def upgrade() -> None:
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('email', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False), # type: ignore
-    sa.Column('hashed_password', sqlmodel.sql.sqltypes.AutoString(), nullable=False),v# type: ignore
+    sa.Column('hashed_password', sqlmodel.sql.sqltypes.AutoString(), nullable=False), # type: ignore
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
