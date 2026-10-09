@@ -1,16 +1,16 @@
 from datetime import UTC, date, datetime
-from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from sqlmodel import col, select
 
 from backend.constants import IN_PROGRESS, STARTING_LIVES, WON
 from backend.db import SessionDependency
+from backend.deps import PlayerDependency
 from backend.models.game import Game
 from backend.models.puzzle import Puzzle
 from backend.schemas.stats import StatsResponse
 from backend.streaks import current_streak, max_streak
-from backend.deps import PlayerDependency
+
 router = APIRouter(prefix="/api/stats", tags=["stats"])
 
 

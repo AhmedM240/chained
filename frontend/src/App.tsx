@@ -10,10 +10,10 @@ import { ResultModal } from "./ResultModal";
 import type { GameState } from "./types";
 import { StatsModal } from "./StatsModal";
 import { totalMisses } from "./Share";
-import { useStats } from "./UseStats";
 import { SettingsModal } from "./SettingsModal";
 import { useSettings } from "./useSettings";
 import { useAuth } from "./useAuth";
+import { useStats } from "./UseStats";
 
 const STAGGER_MS = 120;
 const HELP_SEEN_KEY = "chained-seen-help";

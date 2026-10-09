@@ -1,28 +1,23 @@
-from datetime import date
 
 from fastapi import APIRouter, HTTPException, Response
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import col, func, select
 
+from backend.config import settings
 from backend.constants import IN_PROGRESS, LOST, WON
 from backend.db import SessionDependency
-from backend.deps import PlayerDependency
+from backend.deps import Player, PlayerDependency
 from backend.models.chain_word import ChainWord
 from backend.models.game import Game
 from backend.models.guess import Guess
 from backend.models.puzzle import Puzzle
 from backend.routers.queries import get_chain_words, get_puzzle
-from sqlalchemy.exc import IntegrityError
-
-from backend.deps import Player, PlayerDependency
-
 from backend.schemas.game import (
     ChainWordState,
     GameState,
     GuessCreateRequest,
     GuessResponse,
 )
-
-PUZZLE_EPOCH = date(2026, 9, 21)
 
 router = APIRouter(prefix="/api/games", tags=["games"])
 
@@ -79,7 +74,7 @@ def get_game_state(game: Game, chain_words: list[ChainWord], session) -> GameSta
     return GameState(
         game_id=game.id,
         puzzle_id=game.puzzle_id,
-        puzzle_number= (puzzle.date - PUZZLE_EPOCH).days + 1,
+        puzzle_number= (puzzle.date - settings.puzzle_epoch).days + 1,
         puzzle_date= puzzle.date,
         current_pos=game.current_position,
         lives=game.lives,

@@ -1,12 +1,10 @@
-from sqlmodel import select
-
-from backend.models.guess import Guess
 import pytest
 from sqlalchemy.exc import IntegrityError
+from sqlmodel import select
 
 from backend.models.game import Game
+from backend.models.guess import Guess
 from backend.models.puzzle import Puzzle
-
 
 INTRUDER = {"X-Session-Id": "someone-elses-session"}
 

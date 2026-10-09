@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { createGame, submitGuess } from "./api";
+import { ApiError, createGame, submitGuess } from "./api";
 import type { GameState } from "./types";
 
 export function useGame(playerKey: string | null) {
@@ -17,7 +17,12 @@ export function useGame(playerKey: string | null) {
         }
       })
       .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Something went wrong");
+        if (cancelled) return;
+        if (err instanceof ApiError && err.status === 404) {
+          setError("No chain is scheduled for today. Check back soon!");
+        } else {
+          setError(err instanceof Error ? err.message : "Something went wrong");
+        }
       });
     return () => {
       cancelled = true;

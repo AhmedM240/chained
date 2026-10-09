@@ -5,17 +5,17 @@ Revises: 2e102f626a91
 Create Date: 2026-10-08 22:23:35.264446
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = '9b0849b1be96'
-down_revision: Union[str, Sequence[str], None] = '2e102f626a91'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = '2e102f626a91'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

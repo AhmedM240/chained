@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
-from sqlmodel import Field, SQLModel
 from sqlalchemy import Index, text
+from sqlmodel import Field, SQLModel
 
 from backend.constants import STARTING_LIVES
 

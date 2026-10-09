@@ -1,10 +1,13 @@
-from fastapi import APIRouter, HTTPException, Response, status, Header
+from typing import Annotated
+
+from fastapi import APIRouter, Header, HTTPException, Response, status
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import select, col
+from sqlmodel import col, select
 
 from backend.config import settings
 from backend.db import SessionDependency
 from backend.deps import CurrentUser
+from backend.models.game import Game
 from backend.models.user import User
 from backend.schemas.auth import LoginRequest, RegisterRequest, UserPublic
 from backend.security import (
@@ -14,10 +17,6 @@ from backend.security import (
     hash_password,
     verify_password,
 )
-
-from typing import Annotated
-from backend.models.game import Game
-
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
  
