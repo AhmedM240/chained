@@ -2,19 +2,27 @@ import { useCallback, useEffect, useState } from "react";
 import { createGame, submitGuess } from "./api";
 import type { GameState } from "./types";
 
-import { getSessionId } from "./session";
-
-export function useGame() {
+export function useGame(playerKey: string | null) {
   const [game, setGame] = useState<GameState | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    createGame(getSessionId())
-      .then(setGame)
+    if (playerKey === null) return; // still finding out who the player is
+    let cancelled = false;
+    createGame()
+      .then((g) => {
+        if (!cancelled) {
+          setGame(g);
+          setError(null);
+        }
+      })
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "Something went wrong");
+        if (!cancelled) setError(err instanceof Error ? err.message : "Something went wrong");
       });
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [playerKey]);
 
   const guess = useCallback(
     async (text: string) => {

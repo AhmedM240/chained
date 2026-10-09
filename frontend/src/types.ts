@@ -30,3 +30,8 @@ export type StatsResponse = {
   max_streak: number;
   miss_distribution: number[];
 };
+
+export type User = {
+  id: number;
+  email: string;
+};

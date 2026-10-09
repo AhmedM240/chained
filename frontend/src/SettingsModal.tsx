@@ -1,6 +1,7 @@
 import { Modal } from "./Modal";
 import { AccountSection } from "./AccountSection";
 import type { Settings } from "./useSettings";
+import type { Auth } from "./useAuth";
 
 type ToggleProps = {
   checked: boolean;
@@ -31,10 +32,11 @@ function Toggle({ checked, onChange, label }: ToggleProps) {
 type Props = {
   settings: Settings;
   onChange: (patch: Partial<Settings>) => void;
+  auth : Auth;
   onClose: () => void;
 };
 
-export function SettingsModal({ settings, onChange, onClose }: Props) {
+export function SettingsModal({ settings, onChange, auth, onClose }: Props) {
   return (
     <Modal title="Settings" onClose={onClose}>
       <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted">Gameplay</h3>
@@ -53,7 +55,7 @@ export function SettingsModal({ settings, onChange, onClose }: Props) {
       </div>
 
       <h3 className="mt-6 mb-3 text-xs font-semibold uppercase tracking-widest text-muted">Account</h3>
-      <AccountSection user={null} />
+      <AccountSection auth={auth} />
     </Modal>
   );
 }

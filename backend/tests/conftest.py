@@ -22,6 +22,8 @@ engine = create_engine(TEST_URL)
 
 CHAIN = ["Fire", "Fly", "Wheel", "Chair"]
 
+GUEST_SESSION = "test-session-1"
+
 
 @pytest.fixture(scope="session", autouse=True)
 def create_schema():
@@ -49,7 +51,7 @@ def client(session):
         yield session
 
     app.dependency_overrides[get_session] = override_get_session
-    yield TestClient(app)
+    yield TestClient(app, headers={"X-Session-Id": GUEST_SESSION})
     app.dependency_overrides.clear()
 
 

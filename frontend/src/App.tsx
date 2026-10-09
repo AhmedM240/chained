@@ -13,6 +13,7 @@ import { totalMisses } from "./Share";
 import { useStats } from "./UseStats";
 import { SettingsModal } from "./SettingsModal";
 import { useSettings } from "./useSettings";
+import { useAuth } from "./useAuth";
 
 const STAGGER_MS = 120;
 const HELP_SEEN_KEY = "chained-seen-help";
@@ -34,11 +35,13 @@ function formatPuzzleDate(iso: string): string {
 }
 
 function App() {
-  const { game, error, guess } = useGame();
-  const stats = useStats(game?.game_status ?? null);
+  const auth = useAuth();
+  const playerKey = auth.checked ? `user:${auth.user?.id ?? "guest"}` : null;
+  const { game, error, guess } = useGame(playerKey);
+  const stats = useStats(game ? `${playerKey}:${game.game_id}:${game.game_status}` : null);
   const { settings, updateSettings } = useSettings();
-  const [showSettings, setShowSettings] = useState(false);
 
+  const [trackedGameId, setTrackedGameId] = useState<number | null>(null);
   const [lastPos, setLastPos] = useState<number | null>(null);
   const [justAdvancedTo, setJustAdvancedTo] = useState(-1);
   const [latestRevealed, setLatestRevealed] = useState<Record<number, string>>({});
@@ -47,9 +50,9 @@ function App() {
   const [celebrate, setCelebrate] = useState(false);
   const [justFinished, setJustFinished] = useState(false);
   const [showResult, setShowResult] = useState(false);
-  const [showHelp, setShowHelp] = useState(() => localStorage.getItem(HELP_SEEN_KEY) === null);
   const [showStats, setShowStats] = useState(false);
-  
+  const [showSettings, setShowSettings] = useState(false);
+  const [showHelp, setShowHelp] = useState(() => localStorage.getItem(HELP_SEEN_KEY) === null);
 
   const closeHelp = () => {
     localStorage.setItem(HELP_SEEN_KEY, "1");
@@ -59,9 +62,20 @@ function App() {
     });
   };
 
-  if (game) {
+  if (game && trackedGameId !== game.game_id) {
+    // a different game was loaded (first load, sign-in, or sign-out):
+    // record its current state as the baseline, with no animations
+    setTrackedGameId(game.game_id);
+    setLastPos(game.current_pos);
+    setLastStatus(game.game_status);
+    setLatestRevealed(buildRevealedMap(game));
+    setPrevRevealed({});
+    setJustAdvancedTo(-1);
+    setCelebrate(false);
+    setJustFinished(false);
+  } else if (game) {
     if (lastPos !== game.current_pos) {
-      if (lastPos !== null) setJustAdvancedTo(game.current_pos);
+      setJustAdvancedTo(game.current_pos);
       setLastPos(game.current_pos);
     }
 
@@ -82,7 +96,6 @@ function App() {
       setLastStatus(game.game_status);
     }
   }
-
   // wait for the win wave (or a beat after a loss) before opening the results
   const resultDelay =
     game?.game_status === "won" ? game.words.length * STAGGER_MS + 700 : 900;
@@ -178,6 +191,7 @@ function App() {
   <SettingsModal
     settings={settings}
     onChange={updateSettings}
+    auth={auth}
     onClose={() => setShowSettings(false)}
   />
 )}

@@ -3,9 +3,6 @@ from datetime import date
 from pydantic import BaseModel, Field
 
 
-class GameCreateRequest(BaseModel):
-    session_id : str = Field(min_length=8, max_length=64)
-
 class GuessCreateRequest(BaseModel):
     guess : str = Field(min_length=1, max_length=30)
 

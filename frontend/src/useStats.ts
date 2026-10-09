@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { getStats } from "./api";
-import { getSessionId } from "./session";
 import type { StatsResponse } from "./types";
 
 export function useStats(refreshKey: string | null) {
@@ -9,7 +8,7 @@ export function useStats(refreshKey: string | null) {
   useEffect(() => {
     if (refreshKey === null) return;
     let cancelled = false;
-    getStats(getSessionId())
+    getStats()
       .then((s) => {
         if (!cancelled) setStats(s);
       })

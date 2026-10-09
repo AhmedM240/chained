@@ -1,35 +1,59 @@
+import { useState } from "react";
 import { LogOut, UserRound } from "lucide-react";
-
-export type AccountUser = {
-  email: string;
-};
+import { AuthForm, type AuthMode } from "./AuthForm";
+import type { Auth } from "./useAuth";
 
 type Props = {
-  user: AccountUser | null;
+  auth: Auth;
 };
 
-export function AccountSection({ user }: Props) {
-  if (user) {
+export function AccountSection({ auth }: Props) {
+  const [formMode, setFormMode] = useState<AuthMode | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
+
+  if (!auth.checked) {
+    return <p className="text-sm text-muted">Loading account...</p>;
+  }
+
+  if (auth.user) {
+    const handleSignOut = async () => {
+      setSigningOut(true);
+      await auth.signOut();
+      setSigningOut(false);
+    };
+
     return (
       <div className="rounded-xl bg-bg p-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-solved text-white font-bold uppercase">
-            {user.email[0]}
+            {auth.user.email[0]}
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-charcoal">Signed in</p>
-            <p className="truncate text-sm text-muted">{user.email}</p>
+            <p className="truncate text-sm text-muted">{auth.user.email}</p>
           </div>
         </div>
         <button
-          disabled
+          onClick={handleSignOut}
+          disabled={signingOut}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-locked bg-surface py-2.5 font-semibold text-charcoal
-                     hover:border-danger hover:text-danger transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                     hover:border-danger hover:text-danger transition-colors disabled:opacity-60"
         >
           <LogOut className="w-4 h-4" />
-          Sign out
+          {signingOut ? "Signing out..." : "Sign out"}
         </button>
       </div>
+    );
+  }
+
+  if (formMode) {
+    return (
+      <AuthForm
+        mode={formMode}
+        auth={auth}
+        onModeChange={setFormMode}
+        onCancel={() => setFormMode(null)}
+      />
     );
   }
 
@@ -49,19 +73,18 @@ export function AccountSection({ user }: Props) {
       </p>
       <div className="mt-4 grid grid-cols-2 gap-2">
         <button
-          disabled
-          className="rounded-xl bg-active py-2.5 font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={() => setFormMode("signup")}
+          className="rounded-xl bg-active py-2.5 font-bold text-white shadow-sm hover:brightness-105 transition"
         >
           Create account
         </button>
         <button
-          disabled
-          className="rounded-xl border-2 border-locked bg-surface py-2.5 font-semibold text-charcoal disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={() => setFormMode("signin")}
+          className="rounded-xl border-2 border-locked bg-surface py-2.5 font-semibold text-charcoal hover:border-active transition-colors"
         >
           Sign in
         </button>
       </div>
-      <p className="mt-2 text-center text-xs text-muted">Accounts are coming soon.</p>
     </div>
   );
 }

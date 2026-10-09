@@ -1,11 +1,8 @@
-from fastapi import APIRouter, HTTPException, status, Response
-
+from fastapi import APIRouter, HTTPException, Response, status, Header
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import select
-
+from sqlmodel import select, col
 
 from backend.config import settings
-
 from backend.db import SessionDependency
 from backend.deps import CurrentUser
 from backend.models.user import User
@@ -15,8 +12,11 @@ from backend.security import (
     DUMMY_HASH,
     create_access_token,
     hash_password,
-    verify_password
+    verify_password,
 )
+
+from typing import Annotated
+from backend.models.game import Game
 
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -33,6 +33,25 @@ def _set_auth_cookie(response : Response, user_id : int) -> None:
         path="/"
     )
 
+def _claim_guest_games(session, user_id : int, session_id: str | None) -> None:
+    """Attach this browser's guest games to the account, skipping puzzles the account already played."""
+    if not session_id:
+        return
+    already_played = select(Game.puzzle_id).where(col(Game.user_id) == user_id)
+    guest_games = session.exec(
+        select(Game).where(
+            col(Game.session_id) == session_id,
+            col(Game.user_id).is_(None),
+            col(Game.puzzle_id).not_in(already_played)
+        )
+    ).all()
+
+    for game in guest_games:
+        game.user_id = user_id
+        session.add(game)
+    session.commit()
+
+
 
 def _public(user : User) -> UserPublic:
     assert user.id is not None
@@ -40,7 +59,7 @@ def _public(user : User) -> UserPublic:
 
 
 @router.post("/register", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
-def register(body: RegisterRequest, session : SessionDependency, response : Response):
+def register(body: RegisterRequest, session : SessionDependency, response : Response, x_session_id : Annotated[str | None, Header()] = None):
     user = User(email=body.email.lower(), hashed_password=hash_password(body.password))
     session.add(user)
     try:
@@ -54,13 +73,14 @@ def register(body: RegisterRequest, session : SessionDependency, response : Resp
     session.refresh(user)
     assert user.id is not None
 
+    _claim_guest_games(session, user.id, x_session_id)
     _set_auth_cookie(response, user.id)
 
     return _public(user)
 
 
 @router.post("/login", response_model=UserPublic)
-def login(body: LoginRequest, session : SessionDependency, response : Response):
+def login(body: LoginRequest, session : SessionDependency, response : Response, x_session_id: Annotated[str | None, Header()] = None):
     user = session.exec(select(User).where(User.email == body.email.lower())).first()
 
     if user is None:
@@ -71,6 +91,7 @@ def login(body: LoginRequest, session : SessionDependency, response : Response):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
 
     assert user.id is not None
+    _claim_guest_games(session, user.id, x_session_id)
     _set_auth_cookie(response, user.id)
     
     return _public(user)
@@ -89,5 +110,3 @@ def logout() -> Response:
 def me(user : CurrentUser):
     return _public(user)
 
-
-    

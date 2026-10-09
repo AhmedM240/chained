@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Modal } from "./Modal";
 import { getStats } from "./api";
-import { getSessionId } from "./session";
 import type { StatsResponse } from "./types";
 
 const LABELS = ["Perfect", "1 miss", "2 misses"];
@@ -26,7 +25,7 @@ export function StatsModal({ highlightMisses, onClose }: Props) {
 
   useEffect(() => {
     let cancelled = false;
-    getStats(getSessionId())
+    getStats()
       .then((s) => {
         if (!cancelled) setStats(s);
       })

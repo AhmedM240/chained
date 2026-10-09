@@ -1,12 +1,17 @@
 from sqlmodel import select
 
 from backend.models.guess import Guess
+import pytest
+from sqlalchemy.exc import IntegrityError
 
-SESSION_ID = "test-session-1"
+from backend.models.game import Game
+from backend.models.puzzle import Puzzle
 
 
-def start_game(client) -> dict:
-    res = client.post("/api/games", json={"session_id": SESSION_ID})
+INTRUDER = {"X-Session-Id": "someone-elses-session"}
+
+def start_game(client, **kwargs) -> dict:
+    res = client.post("/api/games", **kwargs)
     assert res.status_code == 201
     return res.json()
 
@@ -35,13 +40,13 @@ def test_answers_never_leak_for_unsolved_words(client, todays_chain):
 
 def test_starting_twice_returns_the_same_game(client, todays_chain):
     first = start_game(client)
-    res = client.post("/api/games", json={"session_id": SESSION_ID})
+    res = client.post("/api/games")
     assert res.status_code == 200
     assert res.json()["game_id"] == first["game_id"]
 
 
 def test_no_puzzle_today_returns_404(client):
-    res = client.post("/api/games", json={"session_id": SESSION_ID})
+    res = client.post("/api/games")
     assert res.status_code == 404
 
 
@@ -120,8 +125,36 @@ def test_win_shows_up_in_stats(client, todays_chain):
     game = start_game(client)
     for word in todays_chain:
         guess(client, game["game_id"], word)
-    stats = client.get("/api/stats", params={"session_id": SESSION_ID}).json()
+    stats = client.get("/api/stats").json()
     assert stats["played"] == 1
     assert stats["wins"] == 1
     assert stats["current_streak"] == 1
     assert stats["miss_distribution"] == [1, 0, 0]
+
+
+def test_missing_session_header_is_rejected(client, todays_chain):
+    res = client.post("/api/games", headers={"X-Session-Id": ""})
+    assert res.status_code == 422
+
+
+def test_another_player_cannot_guess_on_your_game(client, todays_chain):
+    game = start_game(client)
+    res = client.post(f"/api/games/{game['game_id']}/guess", json={"guess": "fire"}, headers=INTRUDER)
+    assert res.status_code == 404
+
+
+def test_another_player_cannot_view_your_game(client, todays_chain):
+    game = start_game(client)
+    res = client.get(f"/api/games/{game['game_id']}", headers=INTRUDER)
+    assert res.status_code == 404
+
+
+def test_database_rejects_a_second_game_for_the_same_player(session, todays_chain):
+    puzzle = session.exec(select(Puzzle)).one()
+    session.add(Game(puzzle_id=puzzle.id, session_id="dup-session"))
+    session.commit()
+
+    session.add(Game(puzzle_id=puzzle.id, session_id="dup-session"))
+    with pytest.raises(IntegrityError):
+        session.commit()
+    session.rollback()

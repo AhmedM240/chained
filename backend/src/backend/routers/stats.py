@@ -10,7 +10,7 @@ from backend.models.game import Game
 from backend.models.puzzle import Puzzle
 from backend.schemas.stats import StatsResponse
 from backend.streaks import current_streak, max_streak
-
+from backend.deps import PlayerDependency
 router = APIRouter(prefix="/api/stats", tags=["stats"])
 
 
@@ -18,14 +18,14 @@ router = APIRouter(prefix="/api/stats", tags=["stats"])
 
 @router.get("", response_model=StatsResponse)
 def get_stats(
-    session_id: Annotated[str, Query(min_length=8, max_length=64)],
+    player : PlayerDependency,
     session: SessionDependency,
 ):
     rows = session.exec(
         select(col(Puzzle.date), col(Game.game_status), col(Game.lives))
         .select_from(Game)
         .join(Puzzle, col(Puzzle.id) == col(Game.puzzle_id))
-        .where(Game.session_id == session_id, Game.game_status != IN_PROGRESS)
+        .where(player.game_filter(), Game.game_status != IN_PROGRESS)
     ).all()
 
     results: dict[date, bool] = {}
