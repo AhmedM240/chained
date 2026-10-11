@@ -9,10 +9,13 @@ from backend.models.chain_word import ChainWord
 from backend.models.puzzle import Puzzle
 
 
+import sys
+
 def load_seed_data() -> list[dict]:
-    path = Path(__file__).parent.parent / "seed_data" / "puzzles.json"
-    with open(path) as f:
-        return json.load(f)
+       default = Path(__file__).parent.parent / "seed_data" / "puzzles.json"
+       path = Path(sys.argv[1]) if len(sys.argv) > 1 else default
+       with open(path) as f:
+           return json.load(f)
 
 
 def seed():
